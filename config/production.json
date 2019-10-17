@@ -1,7 +1,10 @@
 {
   "isDev": true,
   "server": {
-    "port": 8888
+    "port": 8888,
+    "secure": true,
+    "cert": "/Users/megatolya/workspace/signalmaster/config/sslcerts/cert.pem",
+    "key": "/Users/megatolya/workspace/signalmaster/config/sslcerts/key.pem"
   },
   "rooms": {
     "/* maxClients */": "/* maximum number of clients per room. 0 = no limit */",

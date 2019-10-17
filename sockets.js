@@ -12,15 +12,58 @@ module.exports = function (server, config) {
             audio: false
         };
 
-        // pass a message to another id
-        client.on('message', function (details) {
+        client.on('video-offer', function (details) {
             if (!details) return;
+
+            if (!details.sdp) {
+                console.log('no sdp!');
+                return;
+            }
+
+            console.log('video-offer message from', client.id);
 
             var otherClient = io.to(details.to);
             if (!otherClient) return;
 
             details.from = client.id;
-            otherClient.emit('message', details);
+            otherClient.emit('video-offer', details);
+            console.log('video-offer emitted to other');
+        });
+
+        client.on('video-answer', function (details) {
+            if (!details) return;
+
+            if (!details.sdp) {
+                console.log('no sdp!');
+                return;
+            }
+
+            console.log('video answer message from', client.id);
+
+            var otherClient = io.to(details.to);
+            if (!otherClient) return;
+
+            details.from = client.id;
+            otherClient.emit('video-answer', details);
+            console.log('video-answer emitted to other');
+        });
+
+        client.on('candidate', function (details) {
+            if (!details) return;
+
+            if (!details.candidate) {
+                console.log('no candidate!');
+                return;
+            }
+
+            console.log('candidate message from', client.id);
+
+            var otherClient = io.to(details.to);
+            if (!otherClient) return;
+
+            details.from = client.id;
+            otherClient.emit('candidate', details);
+            console.log('candidate emitted to other');
         });
 
         client.on('shareScreen', function () {
@@ -48,6 +91,7 @@ module.exports = function (server, config) {
         }
 
         function join(name, cb) {
+            console.log(client.id, 'joined');
             // sanity check
             if (typeof name !== 'string') return;
             // check if maximum number of clients reached
@@ -61,6 +105,8 @@ module.exports = function (server, config) {
             safeCb(cb)(null, describeRoom(name));
             client.join(name);
             client.room = name;
+            const roommates = Object.keys(io.of('/').connected).filter(x => x !== client.id);
+            client.emit('roommates', roommates);
         }
 
         // we don't want to pass "leave" directly because the
